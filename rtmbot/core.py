@@ -33,6 +33,9 @@ class RtmBot(object):
         if not self.token:
             raise ValueError("Please add a SLACK_TOKEN to your config file.")
 
+        # get a list of commands to lower logging/printing spam
+        self.ignore_commands = config.get('IGNORE_COMMANDS', [])
+
         # get list of directories to search for loading plugins
         self.active_plugins = config.get('ACTIVE_PLUGINS', [])
 
@@ -51,9 +54,14 @@ class RtmBot(object):
             log_level = logging.DEBUG
         else:
             log_level = logging.INFO
-        logging.basicConfig(filename=log_file,
-                            level=log_level,
-                            format='%(asctime)s %(message)s')
+        if log_file == 'sys.stdout':
+            logging.basicConfig(stream=sys.stdout,
+                                level=log_level,
+                                format='%(asctime)s %(message)s')
+        else:
+            logging.basicConfig(filename=log_file,
+                                level=log_level,
+                                format='%(asctime)s %(message)s')
         logging.info('Initialized in: {}'.format(self.directory))
 
         # initialize stateful fields
@@ -108,7 +116,8 @@ class RtmBot(object):
     def input(self, data):
         if "type" in data:
             function_name = "process_" + data["type"]
-            self._dbg("got {}".format(function_name))
+            if data["type"] not in self.ignore_commands:
+                self._dbg("got {}".format(function_name))
             for plugin in self.bot_plugins:
                 plugin.do(function_name, data)
 
