@@ -29,7 +29,7 @@ class RtmBot(object):
         self.config = config
 
         # set slack token
-        self.token = config.get('SLACK_TOKEN', None)
+        self.token = config.get('SLACK_TOKEN', os.getenv('SLACK_TOKEN'))
         if not self.token:
             raise ValueError("Please add a SLACK_TOKEN to your config file.")
 
